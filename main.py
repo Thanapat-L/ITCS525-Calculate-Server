@@ -34,6 +34,7 @@ def calculate(expr: str):
             aeval.error.clear()
             return {"ok": False, "expr": expr, "result": "", "error": msg}
         # TODO: Add history
+        expr = expr.replace('/','÷').replace('*','×')
         history_storage.append({"expr": expr, "result": result})
         return {"ok": True, "expr": expr, "result": result, "error": ""}
     except Exception as e:
@@ -51,5 +52,4 @@ def history():
     return history_storage.clear()
 
 
-print(calculate('20×2'))
 
