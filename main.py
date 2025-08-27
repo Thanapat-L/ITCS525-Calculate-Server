@@ -26,6 +26,7 @@ aeval = Interpreter(minimal=True, usersyms={"pi": math.pi, "e": math.e})
 @app.post("/calculate")
 def calculate(expr: str):
     try:
+        expr = expr.replace('÷','/').replace('×','*')
         code = expand_percent(expr)
         result = aeval(code)
         if aeval.error:
