@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from asteval import Interpreter
 
-from calculator import expand_percent
+from models import Expression,CalculatorLog
 
 HISTORY_MAX = 1000
 history = deque(maxlen=HISTORY_MAX)
@@ -27,23 +27,19 @@ aeval = Interpreter(minimal=True, usersyms={"pi": math.pi, "e": math.e})
 def calculate(expr: str):
     try:
         expr = expr.replace('÷','/').replace('×','*')
-        code = expand_percent(expr)
+        code = Expression(expr=expr).expand_percent()
         result = aeval(code)
         if aeval.error:
             msg = "; ".join(str(e.get_error()) for e in aeval.error)
             aeval.error.clear()
             return {"ok": False, "expr": expr, "result": "", "error": msg}
-        history.appendleft({
-            "timestamp": datetime.now().isoformat() + "Z",
-            "expr": expr,
-            "result": result,
-        })
+        history.appendleft(CalculatorLog(expr=Expression(expr=expr).expr, result=float(result)))
         return {"ok": True, "expr": expr, "result": result, "error": ""}
     except Exception as e:
         return {"ok": False, "expr": expr, "error": str(e)}
 
 
-@app.get("/history")
+@app.get("/history", response_model=list[CalculatorLog])
 def get_history(limit: int = 50):
     return list(history)[: max(0, min(limit, HISTORY_MAX))]
 
